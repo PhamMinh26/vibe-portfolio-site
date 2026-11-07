@@ -1,0 +1,42 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+}
+
+const { title = "Pete McPherson — Portfolio" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen flex flex-col justify-between selection:bg-[#FF0033] selection:text-white">
+    <!-- Header -->
+    <header class="w-full max-w-5xl mx-auto px-6 py-8 flex items-center justify-between border-b border-black/10">
+      <a href="/" class="text-2xl font-bold tracking-tight hover:text-[#FF0033] transition-colors">
+        PETE MCPHERSON
+      </a>
+      <nav class="flex gap-8 text-sm font-medium uppercase tracking-wider">
+        <a href="/" class="hover:text-[#FF0033] transition-colors">Home</a>
+        <a href="/projects" class="hover:text-[#FF0033] transition-colors">Projects</a>
+        <a href="/about" class="hover:text-[#FF0033] transition-colors">About</a>
+      </nav>
+    </header>
+
+    <!-- Main -->
+    <main class="w-full max-w-5xl mx-auto px-6 py-16 flex-1">
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-5xl mx-auto px-6 py-8 border-t border-black/10 text-xs text-neutral-500 flex justify-between">
+      <span>© {new Date().getFullYear()} Pete McPherson</span>
+      <span>Editorial Portfolio</span>
+    </footer>
+  </body>
+</html>
