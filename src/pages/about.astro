@@ -2,25 +2,56 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="About — Pete McPherson">
-  <div class="max-w-2xl space-y-8">
-    <div>
-      <span class="text-xs font-mono uppercase tracking-widest text-[#FF0033]">Biography</span>
-      <h1 class="text-5xl md:text-7xl font-bold uppercase mt-2">About</h1>
+<Layout title="About — AnesPath" description="Về dự án học tập độc lập AnesPath và tuyên bố miễn trừ y khoa.">
+  <div class="max-w-3xl">
+    <!-- Header -->
+    <div class="py-6 border-b border-[#E4EAF0] mb-10">
+      <span class="text-[11px] font-semibold text-[#687789] uppercase tracking-wider block mb-2">Editorial & Mission</span>
+      <h1 class="text-4xl font-bold text-[#101F35] tracking-tight mb-3">About AnesPath</h1>
+      <p class="text-sm sm:text-base text-[#687789] leading-relaxed">
+        Nền tảng học tập độc lập dành cho bác sĩ thực hành, học viên sau đại học và những người quan tâm sâu sắc đến Gây mê Hồi sức & Sinh lý học ứng dụng.
+      </p>
     </div>
 
-    <div class="space-y-6 text-neutral-800 leading-relaxed text-base md:text-lg">
+    <!-- Sứ mệnh & Triết lý -->
+    <section class="space-y-6 text-sm text-[#172536] leading-relaxed mb-12">
+      <h2 class="text-xl font-bold text-[#101F35] tracking-tight">Triết lý dự án: Learn · Share · Grow</h2>
       <p>
-        Building digital tools at the intersection of medical logic and minimalist software engineering.
+        AnesPath không đại diện cho bất kỳ bệnh viện, trường đại học hay hiệp hội y khoa chính quy nào. Đây là một không gian học tập cá nhân và độc lập, được xây dựng với mục tiêu duy nhất: <strong>hệ thống hóa kiến thức lâm sàng phức tạp thành các luồng tư duy logic, rõ ràng và có thể kiểm chứng bằng sinh lý học</strong>.
       </p>
-      <p class="text-neutral-600 text-base">
-        Background focused on systematic workflows, clinical precision, and clean editorial interfaces without unnecessary fluff.
+      <p>
+        Trong thực hành Gây mê Hồi sức, chúng ta thường bị ngập trong các hướng dẫn điều trị dài dòng hoặc các bảng tra thụ động. AnesPath tiếp cận theo hướng ngược lại: đặt <strong>Sinh lý học ứng dụng (Applied Physiology)</strong> làm điểm tựa để giải thích mọi biến động huyết động, hô hấp và toan kiềm tại giường bệnh.
       </p>
-    </div>
+    </section>
 
-    <div class="pt-8 border-t border-black/10 flex gap-6 text-xs uppercase tracking-wider font-semibold">
-      <a href="https://github.com" target="_blank" class="hover:text-[#FF0033] transition-colors">GitHub &nearr;</a>
-      <a href="mailto:contact@example.com" class="hover:text-[#FF0033] transition-colors">Email &nearr;</a>
-    </div>
+    <!-- Cam kết kỹ thuật -->
+    <section class="bg-[#FFFFFF] border border-[#E4EAF0] p-6 rounded mb-12">
+      <h3 class="text-base font-bold text-[#101F35] mb-2">Tiêu chuẩn Kỹ thuật</h3>
+      <ul class="space-y-2 text-xs sm:text-sm text-[#687789]">
+        <li class="flex items-start gap-2">
+          <span class="text-[#8FE3D0] font-bold">✓</span>
+          <span><strong>Zero-JS Overhead:</strong> Trang web tĩnh tốc độ cao xây dựng trên nền Astro, tải trang ngay lập tức kể cả khi mạng phòng mổ yếu.</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-[#8FE3D0] font-bold">✓</span>
+          <span><strong>No Tracking:</strong> Không chèn quảng cáo, không thu thập cookies theo dõi hành vi người dùng.</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-[#8FE3D0] font-bold">✓</span>
+          <span><strong>Continuous Updates:</strong> Dữ liệu được cập nhật liên tục qua mã nguồn mở trên GitHub.</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Medical Disclaimer -->
+    <section class="border-t border-[#E4EAF0] pt-8 text-xs text-[#687789] space-y-3">
+      <h3 class="font-bold text-[#101F35] uppercase tracking-wider text-[11px]">Tuyên bố Miễn trừ Trách nhiệm Y khoa (Medical Disclaimer)</h3>
+      <p class="leading-relaxed">
+        Toàn bộ nội dung, thuật toán, công cụ tính toán và phân tích ca lâm sàng trên <strong>AnesPath</strong> chỉ được cung cấp cho mục đích học thuật, nghiên cứu và giáo dục y khoa.
+      </p>
+      <p class="leading-relaxed">
+        Thông tin trên trang web <strong>không cấu thành chỉ định y khoa chính thức, không thay thế phán đoán lâm sàng của bác sĩ điều trị trực tiếp</strong> và không nên được sử dụng độc lập để ra quyết định xử trí trên bệnh nhân thực tế mà không qua đối chiếu với các phác đồ tại cơ sở y tế sở tại.
+      </p>
+    </section>
   </div>
 </Layout>

@@ -3,40 +3,239 @@ import '../styles/global.css';
 
 interface Props {
   title?: string;
+  description?: string;
+  cockpitMode?: boolean;
 }
 
-const { title = "Pete McPherson — Portfolio" } = Astro.props;
+const {
+  title = "ANESPATH — Gây mê Hồi sức & Sinh lý học tương tác",
+  description = "Nền tảng học tập y khoa chiến thuật: Gây mê Hồi sức & Sinh lý học ứng dụng.",
+  cockpitMode = false
+} = Astro.props;
+
+const currentPath = Astro.url.pathname;
+
+const navItems = [
+  { 
+    label: "Trang chủ", 
+    href: "/", 
+    iconBg: "from-[#60A5FA] to-[#2563EB]",
+    svg: `<path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z" fill="currentColor"/>`
+  },
+  { 
+    label: "Bài học", 
+    href: "/learn", 
+    hasArrow: true,
+    iconBg: "from-[#FB7185] to-[#E11D48]",
+    svg: `<rect x="3" y="8" width="4" height="8" rx="1.5" fill="currentColor"/><rect x="17" y="8" width="4" height="8" rx="1.5" fill="currentColor"/><rect x="7" y="10.5" width="10" height="3" fill="currentColor"/>`
+  },
+  { 
+    label: "Luyện đề", 
+    href: "/exam-prep", 
+    hasArrow: true,
+    iconBg: "from-[#34D399] to-[#059669]",
+    svg: `<rect x="4" y="12" width="4" height="8" rx="1" fill="currentColor"/><rect x="10" y="7" width="4" height="13" rx="1" fill="currentColor"/><rect x="16" y="4" width="4" height="16" rx="1" fill="currentColor"/>`
+  },
+  { 
+    label: "Ca lâm sàng", 
+    href: "/clinical-cases", 
+    hasArrow: true,
+    iconBg: "from-[#FBBF24] to-[#D97706]",
+    svg: `<path d="M12 2a3 3 0 0 1 3 3v4h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h3V5a3 3 0 0 1 3-3z" fill="currentColor"/>`
+  },
+  { 
+    label: "Công cụ", 
+    href: "/clinical-tools", 
+    badge: "NEW",
+    iconBg: "from-[#2DD4BF] to-[#0D9488]",
+    svg: `<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="currentColor"/>`
+  },
+  { 
+    label: "Giới thiệu", 
+    href: "/about", 
+    hasArrow: true,
+    iconBg: "from-[#38BDF8] to-[#0284C7]",
+    svg: `<circle cx="12" cy="12" r="9" fill="currentColor"/><rect x="11" y="10" width="2" height="6" rx="1" fill="#121212"/><circle cx="12" cy="7.5" r="1.2" fill="#121212"/>`
+  },
+];
+
+const isActive = (href: string) => {
+  if (href === "/") return currentPath === "/";
+  return currentPath.startsWith(href);
+};
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="vi" class="dark scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
+    <meta name="description" content={description} />
   </head>
-  <body class="min-h-screen flex flex-col justify-between selection:bg-[#FF0033] selection:text-white">
-    <!-- Header -->
-    <header class="w-full max-w-5xl mx-auto px-6 py-8 flex items-center justify-between border-b border-black/10">
-      <a href="/" class="text-2xl font-bold tracking-tight hover:text-[#FF0033] transition-colors">
-        PETE MCPHERSON
+  <body class="bg-[#121212] text-[#F3F4F6] min-h-screen selection:bg-[#F5B82E] selection:text-[#121212]">
+    
+    <!-- Mobile Topbar -->
+    <div class="lg:hidden flex items-center justify-between px-4 py-3 bg-[#181818] border-b border-[#2E2E2E] sticky top-0 z-50">
+      <a href="/" class="flex items-center gap-2.5">
+        <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5 20h14v2H5v-2zm2-2h10l-1-9H8l-1 9zm-1-11h12V3h-3v2h-2V3h-2v2H9V3H6v4z"/>
+        </svg>
+        <span class="font-semibold text-base tracking-[0.14em] text-white">ANESPATH</span>
       </a>
-      <nav class="flex gap-8 text-sm font-medium uppercase tracking-wider">
-        <a href="/" class="hover:text-[#FF0033] transition-colors">Home</a>
-        <a href="/projects" class="hover:text-[#FF0033] transition-colors">Projects</a>
-        <a href="/about" class="hover:text-[#FF0033] transition-colors">About</a>
-      </nav>
-    </header>
+      <button id="mobileMenuBtn" class="chess-btn px-3 py-1.5 rounded-xl text-xs font-bold text-[#F5B82E]">
+        ☰ Menu
+      </button>
+    </div>
 
-    <!-- Main -->
-    <main class="w-full max-w-5xl mx-auto px-6 py-16 flex-1">
-      <slot />
-    </main>
+    <!-- Main App Shell -->
+    <div class="min-h-screen mx-auto max-w-[1920px] grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)]">
+      
+      <!-- LEFT SIDEBAR (Chuẩn phong cách Chessigma) -->
+      <aside id="appSidebar" class="hidden lg:flex flex-col justify-between bg-[#181818] border-r border-[#2A2A2A] p-3.5 select-none lg:sticky lg:top-0 lg:h-screen z-40">
+        
+        <div class="space-y-4">
+          <!-- Brand Header (Quân Xe trắng + Chữ thanh mảnh + Nút gập <<) -->
+          <div class="flex items-center justify-between px-1.5 pt-1 pb-2">
+            <a href="/" class="flex items-center gap-2.5 group focus:outline-none">
+              <svg class="w-6 h-6 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] group-hover:text-[#F5B82E] transition-colors" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5 20h14v2H5v-2zm2-2h10l-1-9H8l-1 9zm-1-11h12V3h-3v2h-2V3h-2v2H9V3H6v4z"/>
+              </svg>
+              <span class="font-medium text-[15px] tracking-[0.14em] text-[#E5E7EB] group-hover:text-white transition-colors">
+                ANESPATH
+              </span>
+            </a>
 
-    <!-- Footer -->
-    <footer class="w-full max-w-5xl mx-auto px-6 py-8 border-t border-black/10 text-xs text-neutral-500 flex justify-between">
-      <span>© {new Date().getFullYear()} Pete McPherson</span>
-      <span>Editorial Portfolio</span>
-    </footer>
+            <button title="Thu gọn thanh bên" class="w-7 h-7 rounded-full bg-[#242424] border border-[#343434] grid place-items-center text-[#9E9E9E] hover:text-white text-xs shadow-inner cursor-pointer">
+              «
+            </button>
+          </div>
+
+          <!-- Navigation Buttons (Nút nổi khối bo góc + Icon 3D) -->
+          <nav class="space-y-2">
+            {navItems.map((item, idx) => {
+              const active = isActive(item.href);
+              return (
+                <>
+                  {idx === 1 && <div class="h-1"></div>}
+                  {idx === 4 && <div class="h-1"></div>}
+                  <a
+                    href={item.href}
+                    class:list={[
+                      "w-full px-3 py-2 rounded-xl flex items-center justify-between text-[13.5px] font-semibold group",
+                      active ? "chess-btn chess-btn-active text-white" : "chess-btn text-[#E5E7EB] hover:text-white"
+                    ]}
+                  >
+                    <span class="flex items-center gap-3">
+                      <!-- Icon bo góc nổi 3D -->
+                      <span class={`clay-icon-box w-7 h-7 bg-gradient-to-br ${item.iconBg} grid place-items-center text-white flex-none group-hover:scale-105 transition-transform`}>
+                        <svg class="w-4 h-4 drop-shadow-sm" viewBox="0 0 24 24" set:html={item.svg}></svg>
+                      </span>
+                      <span>{item.label}</span>
+                    </span>
+
+                    {item.badge && (
+                      <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[#F5B82E] text-[#121212] shadow-sm">
+                        {item.badge}
+                      </span>
+                    )}
+
+                    {item.hasArrow && !item.badge && (
+                      <span class:list={[
+                        "text-sm font-bold transition-transform group-hover:translate-x-0.5",
+                        active ? "text-[#F5B82E]" : "text-[#737373]"
+                      ]}>
+                        ›
+                      </span>
+                    )}
+                  </a>
+                </>
+              );
+            })}
+          </nav>
+        </div>
+
+        <!-- Bottom Section: Day Streak + Nút Vàng CTA + Online Counter -->
+        <div class="space-y-2.5 pt-3">
+          
+          <!-- Day Streak Card (Giống hệt khung dưới của Chessigma) -->
+          <div class="bg-[#1F1F1F] border border-[#2E2E2E] rounded-2xl p-3 shadow-inner">
+            <div class="flex items-center justify-between mb-2.5">
+              <div class="flex items-center gap-2">
+                <span class="text-base opacity-80">🔥</span>
+                <span id="streakCount" class="font-bold text-lg text-white leading-none">1</span>
+              </div>
+              <span class="text-[10px] font-semibold tracking-[0.12em] text-[#8E8E8E] uppercase">
+                DAY STREAK
+              </span>
+            </div>
+            <div class="grid grid-cols-7 gap-1.5 text-center">
+              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
+                <div class="flex flex-col items-center gap-1">
+                  <div data-day={idx} class="streak-box w-4 h-4 rounded-[4px] bg-[#262626] border border-[#383838] transition-all"></div>
+                  <span class="text-[9px] text-[#737373] font-semibold">{day}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <!-- Primary Gold 3D Action Button -->
+          <a href="/learn" class="chess-cta-gold w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-[13px] font-extrabold shadow-lg relative">
+            <span>⚡ Vào phòng học</span>
+            <span class="absolute -top-2 right-2 text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-[#121212] text-[#F5B82E] border border-[#F5B82E]/50">
+              Pro
+            </span>
+          </a>
+
+          <!-- Bottom Status Line -->
+          <div class="flex items-center justify-between text-[11px] text-[#8E8E8E] px-1 pt-0.5">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-[#22C55E] shadow-[0_0_6px_#22C55E]"></span>
+              <strong class="text-white font-bold">25</strong> chuyên đề
+            </span>
+            <span class="w-6 h-6 rounded-lg bg-[#222222] border border-[#333333] grid place-items-center text-[11px] text-[#9E9E9E]">
+              ◐
+            </span>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- MAIN CONTENT AREA -->
+      <div class="min-w-0 flex flex-col p-3 lg:p-4">
+        <slot />
+      </div>
+
+    </div>
+
+    <script is:inline>
+      (function() {
+        const btn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('appSidebar');
+        if (btn && sidebar) {
+          btn.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('fixed');
+            sidebar.classList.toggle('inset-y-0');
+            sidebar.classList.toggle('left-0');
+            sidebar.classList.toggle('w-64');
+            sidebar.classList.toggle('shadow-2xl');
+          });
+        }
+
+        try {
+          const today = new Date();
+          const dayOfWeek = (today.getDay() + 6) % 7;
+          const boxes = document.querySelectorAll('.streak-box');
+          boxes.forEach((box, idx) => {
+            if (idx === dayOfWeek) {
+              box.classList.remove('bg-[#262626]', 'border-[#383838]');
+              box.classList.add('bg-[#F5B82E]', 'border-[#FDE047]', 'shadow-[0_0_8px_rgba(245,184,46,0.5)]');
+            }
+          });
+        } catch (e) {}
+      })();
+    </script>
   </body>
 </html>

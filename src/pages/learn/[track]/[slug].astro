@@ -1,0 +1,620 @@
+﻿---
+import Layout from '../../../layouts/Layout.astro';
+import { curriculum, type Lesson, type Track } from '../../../data/curriculum';
+import { PV_LOOP_LESSON } from '../../../data/lessons/pv-loop';
+
+export function getStaticPaths() {
+  const paths: any[] = [];
+  curriculum.tracks.forEach((track) => {
+    track.lessons
+      .filter((lesson) => lesson.status === "ready")
+      .forEach((lesson) => {
+        paths.push({
+          params: { track: track.id, slug: lesson.slug },
+          props: { track, lesson }
+        });
+      });
+  });
+  return paths;
+}
+
+interface Props {
+  track: Track;
+  lesson: Lesson;
+}
+
+const { track, lesson } = Astro.props;
+const isPVLesson = lesson.slug === 'chuc-nang-bom-mau-tim';
+
+// Chuẩn hóa dữ liệu stages cho cả bài PV Loop nâng cao lẫn các bài tiêu chuẩn
+const stages = isPVLesson
+  ? PV_LOOP_LESSON.stages
+  : (lesson.stages || []).map((st, idx) => ({
+      id: st.id,
+      groupTitle: st.groupTitle || `PHẦN ${idx + 1}`,
+      title: st.title,
+      tag: st.tag || 'Mainline',
+      notation: st.notation,
+      coachHtml: `<p>${st.guide}</p>`,
+      centerStageHtml: `
+        <div class="space-y-4">
+          ${lesson.youtubeId ? `
+            <div class="w-full aspect-video max-h-[340px] rounded-xl overflow-hidden border border-[#2E2E2E] bg-[#121212] shadow-lg mx-auto">
+              <iframe class="w-full h-full" src="https://www.youtube-nocookie.com/embed/${lesson.youtubeId}" title="${lesson.title}" frameborder="0" allowfullscreen loading="lazy"></iframe>
+            </div>
+          ` : ''}
+          <div class="bg-[#121212] border border-[#2E2E2E] rounded-xl p-4">
+            <div class="text-[10px] font-extrabold text-[#F5B82E] uppercase tracking-wider mb-1.5">PHÂN TÍCH CƠ CHẾ LÂM SÀNG</div>
+            <h3 class="text-base font-bold text-white mb-2">${st.title}</h3>
+            <p class="text-xs sm:text-sm text-[#D1D5DB] leading-relaxed">${st.content || st.desc}</p>
+          </div>
+        </div>
+      `,
+      quiz: {
+        question: st.question,
+        options: st.options.map(opt => ({
+          label: opt.text,
+          isCorrect: opt.id === st.correct,
+          explanation: opt.rationale
+        }))
+      }
+    }));
+
+const payloadJson = JSON.stringify({ stages, lessonTitle: lesson.title });
+---
+
+<Layout title={`${lesson.title} — AnesPath`} cockpitMode={true}>
+  <div class="grid grid-cols-1 xl:grid-cols-[minmax(420px,1fr)_400px] gap-3.5 min-h-[calc(100vh-32px)]">
+    
+    <!-- CỘT GIỮA: SÂN KHẤU TRUNG TÂM TRÀN VIỀN (CHESSIGMA / CHESSREPS STYLE) -->
+    <main class="min-w-0 flex flex-col gap-2.5">
+      
+      <!-- Topbar siêu gọn: Nút Leave + Tên bài + Segmented Step Bar -->
+      <header class="bg-[#181818] border border-[#2E2E2E] rounded-2xl px-3.5 py-2.5 space-y-2.5">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <a href="/learn" class="chess-btn px-3 py-1 rounded-lg text-xs font-bold text-white flex items-center gap-1.5 flex-none">
+              <span>‹</span>
+              <span>Rời phòng</span>
+            </a>
+            <span class="text-xs font-mono text-[#F5B82E] font-bold flex-none">{lesson.lessonNumber}</span>
+            <h1 class="text-xs sm:text-sm font-bold text-white truncate">{lesson.title}</h1>
+          </div>
+
+          <div class="flex items-center gap-2 flex-none">
+            <span class="text-[11px] font-mono text-[#9E9E9E] hidden sm:inline">Điểm tư duy:</span>
+            <span id="scoreBadge" class="font-mono text-xs font-extrabold px-2.5 py-0.5 rounded-md bg-[#121212] border border-[#2E2E2E] text-[#F5B82E]">
+              0/{stages.length}
+            </span>
+          </div>
+        </div>
+
+        <!-- Thanh lộ trình chia phân đoạn ngang (Segmented Progress Bar giống Chessigma) -->
+        <div class="grid gap-1.5" style={`grid-template-columns: repeat(${Math.max(stages.length, 1)}, minmax(0, 1fr));`} id="segmentedBar">
+          {stages.map((st, idx) => (
+            <button
+              data-seg-idx={idx}
+              class="seg-step group text-left focus:outline-none cursor-pointer"
+              title={st.title}
+            >
+              <div class:list={[
+                "seg-line h-1 rounded-full transition-all mb-1",
+                idx === 0 ? "bg-[#F5B82E]" : "bg-[#2E2E2E] group-hover:bg-[#4B5563]"
+              ]}></div>
+              <div class:list={[
+                "seg-label text-[10px] font-mono truncate transition-colors",
+                idx === 0 ? "text-[#F5B82E] font-bold" : "text-[#737373]"
+              ]}>
+                {idx + 1} • {st.title}
+              </div>
+            </button>
+          ))}
+        </div>
+      </header>
+
+      <!-- SÂN KHẤU CHÍNH -->
+      <section class="flex-1 bg-[#181818] border border-[#2E2E2E] rounded-2xl p-4 flex flex-col justify-between shadow-xl">
+        <!-- Biên bản nước đi cơ chế (Mechanism Notation Bar) -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-[#2A2A2A]">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-[10px] font-mono font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-[#F5B82E]/15 text-[#F5B82E] border border-[#F5B82E]/30 flex-none">
+              BIÊN BẢN
+            </span>
+            <code id="stageNotation" class="text-xs font-mono text-[#38BDF8] truncate">
+              {stages[0]?.notation}
+            </code>
+          </div>
+          <span id="stageTag" class="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border bg-[#22C55E]/15 text-[#22C55E] border-[#22C55E]/40">
+            {stages[0]?.tag}
+          </span>
+        </div>
+
+        <!-- Vùng hiển thị SVG / Tương tác động -->
+        <div id="centerStageContainer" class="flex-1 flex flex-col justify-center" set:html={stages[0]?.centerStageHtml}></div>
+      </section>
+
+    </main>
+
+    <!-- CỘT PHẢI: DROPDOWN MỤC LỤC + BONG BÓNG THOẠI TRẮNG + ACTIVE RECALL -->
+    <aside class="bg-[#181818] border border-[#2E2E2E] rounded-2xl p-4 flex flex-col gap-3.5 select-none custom-scrollbar xl:overflow-y-auto xl:max-h-[calc(100vh-32px)] relative shadow-xl">
+      
+      <!-- 1. Dropdown Mục lục các phần -->
+      <div class="relative z-30">
+        <button id="stageDropdownBtn" class="chess-btn w-full rounded-xl p-3 flex items-center justify-between text-left cursor-pointer">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="clay-icon-box w-8 h-8 bg-gradient-to-br from-[#60A5FA] to-[#2563EB] grid place-items-center text-sm text-white flex-none">
+              📖
+            </div>
+            <div class="min-w-0">
+              <div id="dropdownGroupTitle" class="text-[10px] font-extrabold text-[#F5B82E] uppercase tracking-wider truncate">
+                {stages[0]?.groupTitle}
+              </div>
+              <div id="dropdownActiveTitle" class="text-xs sm:text-sm font-bold text-white truncate">
+                1. {stages[0]?.title}
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-none ml-2">
+            <span id="stepCounter" class="font-mono text-xs font-semibold text-[#9E9E9E]">
+              1 of {stages.length}
+            </span>
+            <span id="dropdownArrow" class="text-xs text-[#9E9E9E] transition-transform duration-200">⌄</span>
+          </div>
+        </button>
+
+        <!-- Dropdown Menu List -->
+        <div id="stageDropdownMenu" class="hidden absolute left-0 right-0 top-[calc(100%+6px)] bg-[#1E1E1E] border border-[#3D3D3D] rounded-xl shadow-2xl overflow-hidden max-h-[380px] overflow-y-auto custom-scrollbar">
+          {stages.map((st, idx) => {
+            const showGroupHeader = idx === 0 || st.groupTitle !== stages[idx - 1]?.groupTitle;
+            return (
+              <div>
+                {showGroupHeader && (
+                  <div class="px-3.5 py-2 bg-[#141414] text-[10px] font-extrabold tracking-[0.12em] text-[#9E9E9E] border-y border-[#2E2E2E]">
+                    {st.groupTitle}
+                  </div>
+                )}
+                <button
+                  data-stage-idx={idx}
+                  class:list={[
+                    "stage-menu-item w-full px-3.5 py-3 text-left flex items-center justify-between gap-2 border-b border-[#2E2E2E] hover:bg-[#282828] transition cursor-pointer",
+                    idx === 0 ? "bg-[#262626] shadow-[inset_3px_0_#F5B82E]" : ""
+                  ]}
+                >
+                  <div class="flex items-start gap-2.5 min-w-0">
+                    <span class="font-mono text-xs font-bold text-[#F5B82E] mt-0.5">{idx + 1}</span>
+                    <div class="min-w-0">
+                      <div class="text-xs font-bold text-white truncate">{st.title}</div>
+                      <div class="font-mono text-[10px] text-[#9E9E9E] truncate mt-0.5">{st.notation}</div>
+                    </div>
+                  </div>
+                  <span class:list={[
+                    "text-[9px] font-mono font-bold px-2 py-0.5 rounded border flex-none",
+                    st.tag === 'Trap' ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30" :
+                    st.tag === 'Cấp cứu' ? "bg-[#F5B82E]/10 text-[#F5B82E] border-[#F5B82E]/30" :
+                    "bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/30"
+                  ]}>
+                    {st.tag}
+                  </span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <!-- 2. BONG BÓNG THOẠI HUẤN LUYỆN VIÊN NỀN TRẮNG (CHESSIGMA / CHESSREPS STYLE) -->
+      <div class="flex items-start gap-3">
+        <!-- Avatar Coach -->
+        <div class="flex flex-col items-center gap-1 flex-none pt-1">
+          <div class="clay-icon-box w-10 h-10 bg-gradient-to-br from-[#FBBF24] to-[#D97706] grid place-items-center text-lg text-[#121212] font-black">
+            🩺
+          </div>
+          <span class="text-[9px] font-mono font-bold text-[#9E9E9E]">COACH</span>
+        </div>
+
+        <!-- White Speech Bubble -->
+        <div class="relative flex-1 bg-white text-zinc-900 rounded-2xl p-3.5 shadow-lg text-xs sm:text-[13px] leading-relaxed space-y-2">
+          <!-- Mũi tên nhọn trỏ sang Avatar -->
+          <div class="w-3 h-3 bg-white rotate-45 absolute -left-1.5 top-4"></div>
+          <div id="coachBubbleHtml" class="relative z-10 space-y-2" set:html={stages[0]?.coachHtml}></div>
+        </div>
+      </div>
+
+      <!-- 3. KHỐI ACTIVE RECALL QUIZ -->
+      <div class="bg-[#121212] border border-[#2E2E2E] rounded-2xl p-3.5 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono font-extrabold uppercase tracking-wider text-[#F5B82E]">
+            KIỂM TRA TƯ DUY
+          </span>
+          <span id="quizStatusPill" class="text-[10px] font-mono text-[#9E9E9E]">
+            Chọn 1 đáp án
+          </span>
+        </div>
+
+        <p id="quizQuestion" class="text-xs sm:text-[13px] font-bold text-white leading-snug">
+          {stages[0]?.quiz.question}
+        </p>
+
+        <div id="quizOptions" class="space-y-2"></div>
+
+        <div id="quizExplanation" class="hidden rounded-xl p-3 text-xs leading-relaxed"></div>
+      </div>
+
+      <!-- 4. BOTTOM NAVIGATION BAR (Giống Chessigma: [<] [Next ->] [Skip]) -->
+      <div class="mt-auto flex items-center gap-2 pt-1">
+        <button id="btnPrev" class="chess-btn w-11 h-10 rounded-xl grid place-items-center text-white font-bold cursor-pointer" title="Phần trước">
+          ‹
+        </button>
+        <button id="btnNext" class="chess-cta-gold flex-1 h-10 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-extrabold cursor-pointer">
+          <span id="btnNextText">Tiếp theo</span>
+          <span>➔</span>
+        </button>
+        <button id="btnSkip" class="chess-btn h-10 px-3 rounded-xl text-[11px] font-semibold text-[#9E9E9E] hover:text-white cursor-pointer">
+          Bỏ qua
+        </button>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <script type="application/json" id="trainerPayload" set:html={payloadJson}></script>
+
+  <script is:inline>
+    // Động cơ tương tác SVG cho bài PV Loop
+    window.AnesPV = {
+      focusPhase: function(phaseNum) {
+        const dot = document.getElementById('s1-beat-dot');
+        const readout = document.getElementById('s1-phase-readout');
+        if (!dot || !readout) return;
+        const phases = {
+          1: { cx: 306, cy: 276, color: '#38BDF8', text: '<strong class="text-[#38BDF8]">Pha 1 • Đổ đầy tâm trương (A → B):</strong> Van hai lá mở, van ĐMC đóng. Máu chảy từ nhĩ trái xuống làm thể tích thất trái tăng từ 50 mL lên 120 mL ở mức áp lực thấp (~5–10 mmHg).' },
+          2: { cx: 401, cy: 222, color: '#F5B82E', text: '<strong class="text-[#F5B82E]">Pha 2 • Co đẳng tích (B → C):</strong> Van hai lá đóng sập (tiếng T1), van ĐMC chưa mở. Mọi van đều đóng kín, thể tích giữ nguyên 120 mL trong khi áp lực vọt lên 80 mmHg.' },
+          3: { cx: 300, cy: 118, color: '#22C55E', text: '<strong class="text-[#22C55E]">Pha 3 • Tống máu tâm thu (C → D):</strong> Van ĐMC bật mở, van hai lá đóng. Thể tích giảm từ 120 mL về 50 mL khi máu bơm vào ĐMC, áp lực đạt đỉnh 120 mmHg rồi hạ nhẹ.' },
+          4: { cx: 211, cy: 205, color: '#EF4444', text: '<strong class="text-[#EF4444]">Pha 4 • Giãn đẳng tích (D → A):</strong> Van ĐMC đóng sập (tiếng T2), van hai lá chưa mở. Thể tích đứng yên ở 50 mL (ESV), áp lực tụt dốc thẳng đứng về mức nhĩ trái.' }
+        };
+        const p = phases[phaseNum];
+        dot.setAttribute('cx', p.cx);
+        dot.setAttribute('cy', p.cy);
+        dot.setAttribute('fill', p.color);
+        readout.innerHTML = p.text;
+      },
+      updateSystole: function(val) {
+        const pct = Number(val);
+        const dot = document.getElementById('s2-tracer');
+        const pctLabel = document.getElementById('s2-pct-label');
+        const lvpEl = document.getElementById('s2-lvp');
+        const lvvEl = document.getElementById('s2-lvv');
+        const valvesEl = document.getElementById('s2-valves');
+        if (!dot) return;
+        if (pct <= 35) {
+          const ratio = pct / 35;
+          const y = 251 - ratio * (251 - 158);
+          const pVal = Math.round(10 + ratio * 70);
+          dot.setAttribute('cx', 401);
+          dot.setAttribute('cy', y.toFixed(1));
+          dot.setAttribute('fill', '#F5B82E');
+          pctLabel.textContent = pct + '% (Co đẳng tích)';
+          lvpEl.textContent = pVal + ' mmHg';
+          lvvEl.textContent = '120 mL';
+          valvesEl.textContent = pct === 0 ? 'Van 2 lá vừa đóng (T1)' : 'Cả 2 van đều đóng';
+          valvesEl.className = 'text-[#F5B82E] font-bold';
+        } else {
+          const ratio = (pct - 35) / 65;
+          const x = 401 - ratio * (401 - 211);
+          const y = 158 - Math.sin(ratio * Math.PI) * 55 - ratio * 27;
+          const pVal = Math.round(80 + Math.sin(ratio * Math.PI) * 40 + ratio * 20);
+          const vVal = Math.round(120 - ratio * 70);
+          dot.setAttribute('cx', x.toFixed(1));
+          dot.setAttribute('cy', y.toFixed(1));
+          dot.setAttribute('fill', '#22C55E');
+          pctLabel.textContent = pct + '% (Tống máu tâm thu)';
+          lvpEl.textContent = pVal + ' mmHg';
+          lvvEl.textContent = vVal + ' mL';
+          valvesEl.textContent = pct === 100 ? 'Van ĐMC đóng (T2)' : 'Van ĐMC mở • 2 lá đóng';
+          valvesEl.className = pct === 100 ? 'text-[#EF4444] font-bold' : 'text-[#22C55E] font-bold';
+        }
+      },
+      setDiastoleStep: function(stepIdx) {
+        const dot = document.getElementById('s3-step-dot');
+        const desc = document.getElementById('s3-step-desc');
+        if (!dot || !desc) return;
+        const steps = [
+          { cx: 211, cy: 131, color: '#EF4444', html: '<strong class="text-[#EF4444]">Bước 1 (Tiếng T2):</strong> Áp lực thất trái tụt xuống dưới áp lực động mạch chủ, van động mạch chủ đóng lại chấm dứt giai đoạn tống máu.' },
+          { cx: 211, cy: 192, color: '#F5B82E', html: '<strong class="text-[#F5B82E]">Bước 2 (Giãn đẳng tích):</strong> Mọi van tim đều đóng. Thể tích giữ nguyên ở mức 50 mL (ESV), áp lực tụt dốc thẳng đứng tạo cạnh bên trái.' },
+          { cx: 248, cy: 260, color: '#38BDF8', html: '<strong class="text-[#38BDF8]">Bước 3 (Đầu thì đổ đầy):</strong> Van hai lá mở ra! Máu chảy vào nhưng áp lực thất trái vẫn tiếp tục giảm thêm một chút do cơ tim vẫn đang tiếp tục thư giãn.' },
+          { cx: 385, cy: 252, color: '#22C55E', html: '<strong class="text-[#22C55E]">Bước 4 (Cuối thì đổ đầy):</strong> Khi thất trái đã thư giãn xong, máu tiếp tục đổ vào làm căng buồng tim và đẩy áp lực tăng nhẹ lên ~10 mmHg tại 120 mL.' }
+        ];
+        const s = steps[stepIdx];
+        dot.setAttribute('cx', s.cx);
+        dot.setAttribute('cy', s.cy);
+        dot.setAttribute('fill', s.color);
+        desc.innerHTML = s.html;
+      },
+      updateDBP: function(dbpVal) {
+        const dbp = Number(dbpVal);
+        const yOpen = 265 - (dbp / 180) * 240;
+        const yPeak = Math.max(42, yOpen - 55);
+        const yClose = yOpen - 26;
+        const loopPath = document.getElementById('s4-dynamic-loop');
+        if (!loopPath) return;
+        const d = 'M 211 253 Q 255 261, 310 256 T 401 251 L 401 ' + yOpen.toFixed(1) + ' C 375 ' + (yPeak + 7).toFixed(1) + ', 330 ' + yPeak.toFixed(1) + ', 300 ' + yPeak.toFixed(1) + ' C 265 ' + yPeak.toFixed(1) + ', 232 ' + (yClose - 15).toFixed(1) + ', 211 ' + yClose.toFixed(1) + ' Z';
+        loopPath.setAttribute('d', d);
+        document.getElementById('s4-ivc-line').setAttribute('y2', yOpen.toFixed(1));
+        document.getElementById('s4-dbp-guide').setAttribute('y1', yOpen.toFixed(1));
+        document.getElementById('s4-dbp-guide').setAttribute('y2', yOpen.toFixed(1));
+        document.getElementById('s4-dbp-axis-text').setAttribute('y', (yOpen + 4).toFixed(1));
+        document.getElementById('s4-dbp-axis-text').textContent = dbp;
+        document.getElementById('s4-av-open-dot').setAttribute('cy', yOpen.toFixed(1));
+        document.getElementById('s4-av-open-label').setAttribute('y', (yOpen - 5).toFixed(1));
+        document.getElementById('s4-av-open-label').textContent = 'Mở van ĐMC: ' + dbp + ' mmHg';
+        const valText = document.getElementById('s4-dbp-val');
+        const noteEl = document.getElementById('s4-clinical-note');
+        if (dbp <= 85) {
+          valText.textContent = dbp + ' mmHg (Bình thường)';
+          valText.className = 'font-mono font-bold text-[#22C55E] text-sm';
+          document.getElementById('s4-ivc-line').setAttribute('stroke', '#F5B82E');
+          noteEl.innerHTML = 'Tại mức <strong class="text-[#22C55E]">' + dbp + ' mmHg</strong>, thất trái dễ dàng vượt qua cửa ải co đẳng tích để mở van động mạch chủ mà không tốn quá nhiều oxy cơ tim.';
+        } else {
+          valText.textContent = dbp + ' mmHg (Tăng hậu tải!)';
+          valText.className = 'font-mono font-bold text-[#EF4444] text-sm';
+          document.getElementById('s4-ivc-line').setAttribute('stroke', '#EF4444');
+          noteEl.innerHTML = '<strong class="text-[#EF4444]">Cảnh báo:</strong> Cửa ải mở van ĐMC bị đẩy lên <strong>' + dbp + ' mmHg</strong>! Đường co đẳng tích kéo dài bắt thất trái gồng sức lâu hơn trước khi tống được giọt máu đầu tiên.';
+        }
+      },
+      updateSV: function() {
+        const edvSlider = document.getElementById('s5-edv-slider');
+        const esvSlider = document.getElementById('s5-esv-slider');
+        if (!edvSlider || !esvSlider) return;
+        const edv = Number(edvSlider.value);
+        const esv = Number(esvSlider.value);
+        const sv = edv - esv;
+        const ef = Math.round((sv / edv) * 100);
+        document.getElementById('s5-edv-val').textContent = edv + ' mL';
+        document.getElementById('s5-esv-val').textContent = esv + ' mL';
+        document.getElementById('s5-ef-readout').textContent = 'SV = ' + sv + ' mL | EF = ' + ef + '%';
+        const xLeft = 75 + (esv / 160) * 435;
+        const xRight = 75 + (edv / 160) * 435;
+        const xMid = (xLeft + xRight) / 2;
+        const yPeak = Math.max(65, 103 - (edv - 120) * 0.45);
+        const sbpEst = Math.round(120 + (edv - 120) * 0.35);
+        const d = 'M ' + xLeft.toFixed(1) + ' 253 Q ' + (xLeft + (xRight - xLeft) * 0.25).toFixed(1) + ' 261, ' + xMid.toFixed(1) + ' 256 T ' + xRight.toFixed(1) + ' 251 L ' + xRight.toFixed(1) + ' 158 C ' + (xRight - (xRight - xLeft) * 0.15).toFixed(1) + ' ' + (yPeak + 7).toFixed(1) + ', ' + (xMid + 15).toFixed(1) + ' ' + yPeak.toFixed(1) + ', ' + xMid.toFixed(1) + ' ' + yPeak.toFixed(1) + ' C ' + (xMid - 20).toFixed(1) + ' ' + yPeak.toFixed(1) + ', ' + (xLeft + 15).toFixed(1) + ' 115, ' + xLeft.toFixed(1) + ' 131 Z';
+        document.getElementById('s5-loop-path').setAttribute('d', d);
+        document.getElementById('s5-sbp-line').setAttribute('y1', yPeak.toFixed(1));
+        document.getElementById('s5-sbp-line').setAttribute('y2', yPeak.toFixed(1));
+        document.getElementById('s5-sbp-line').setAttribute('x2', xMid.toFixed(1));
+        document.getElementById('s5-sbp-dot').setAttribute('cx', xMid.toFixed(1));
+        document.getElementById('s5-sbp-dot').setAttribute('cy', yPeak.toFixed(1));
+        document.getElementById('s5-sbp-label').setAttribute('x', xMid.toFixed(1));
+        document.getElementById('s5-sbp-label').setAttribute('y', (yPeak - 11).toFixed(1));
+        document.getElementById('s5-sbp-label').textContent = 'Huyết áp tâm thu (Đỉnh: ' + sbpEst + ' mmHg)';
+        document.getElementById('s5-esv-drop').setAttribute('x1', xLeft.toFixed(1));
+        document.getElementById('s5-esv-drop').setAttribute('x2', xLeft.toFixed(1));
+        document.getElementById('s5-edv-drop').setAttribute('x1', xRight.toFixed(1));
+        document.getElementById('s5-edv-drop').setAttribute('x2', xRight.toFixed(1));
+        document.getElementById('s5-sv-arrow').setAttribute('x1', (xLeft + 4).toFixed(1));
+        document.getElementById('s5-sv-arrow').setAttribute('x2', (xRight - 4).toFixed(1));
+        document.getElementById('s5-sv-badge').setAttribute('x', (xMid - 50).toFixed(1));
+        document.getElementById('s5-sv-text').setAttribute('x', xMid.toFixed(1));
+        document.getElementById('s5-sv-text').textContent = 'SV = ' + sv + ' mL';
+        document.getElementById('s5-esv-label').setAttribute('x', xLeft.toFixed(1));
+        document.getElementById('s5-esv-label').textContent = 'ESV: ' + esv;
+        document.getElementById('s5-edv-label').setAttribute('x', xRight.toFixed(1));
+        document.getElementById('s5-edv-label').textContent = 'EDV: ' + edv;
+      },
+      setScenario: function(type) {
+        const loop = document.getElementById('s6-scenario-loop');
+        const title = document.getElementById('s6-svg-title');
+        const metrics = document.getElementById('s6-svg-metrics');
+        const analysis = document.getElementById('s6-scenario-analysis');
+        if (!loop) return;
+        const configs = {
+          normal: {
+            d: 'M 211 253 Q 255 261, 310 256 T 401 251 L 401 158 C 375 110, 330 103, 300 103 C 265 103, 232 115, 211 131 Z',
+            stroke: '#22C55E', fill: 'rgba(34, 197, 94, 0.12)',
+            title: 'TRẠNG THÁI SINH LÝ CHUẨN',
+            metrics: 'BP: 120/80 mmHg | EDV: 120 | ESV: 50 | SV: 70 mL',
+            html: '<strong class="text-[#22C55E]">Phân tích:</strong> Vòng lặp cân đối giữa 4 pha, mở van ĐMC ở 80 mmHg, đạt đỉnh 120 mmHg và tống ra trọn vẹn 70 mL mỗi nhát bóp.'
+          },
+          hypovolemia: {
+            d: 'M 170 257 Q 200 262, 231 259 T 292 256 L 292 185 C 272 152, 245 145, 231 145 C 205 145, 185 155, 170 168 Z',
+            stroke: '#38BDF8', fill: 'rgba(56, 189, 248, 0.14)',
+            title: 'SỐC GIẢM THỂ TÍCH / MẤT MÁU CẤP',
+            metrics: 'BP: 90/60 mmHg | EDV: 80 | ESV: 35 | SV: 45 mL',
+            html: '<strong class="text-[#38BDF8]">Phân tích:</strong> Thiếu máu hồi lưu làm EDV tụt xuống 80 mL. Toàn bộ vòng lặp <span class="text-white font-semibold">dịch chuyển sang trái, thu hẹp bề ngang (SV giảm còn 45 mL)</span> và hạ thấp đỉnh huyết áp tâm thu.'
+          },
+          afterload: {
+            d: 'M 279 252 Q 315 260, 345 256 T 401 251 L 401 118 C 382 60, 355 42, 340 42 C 315 42, 295 58, 279 78 Z',
+            stroke: '#EF4444', fill: 'rgba(239, 68, 68, 0.14)',
+            title: 'CƠN TĂNG HẬU TẢI CẤP (THA KỊCH PHÁT)',
+            metrics: 'BP: 180/110 mmHg | EDV: 120 | ESV: 75 | SV: 45 mL',
+            html: '<strong class="text-[#EF4444]">Phân tích:</strong> Cửa ải mở van ĐMC vọt lên 110 mmHg kéo dài pha co đẳng tích. Thất trái tống máu khó khăn làm <span class="text-white font-semibold">ESV ứ lại tới 75 mL, vòng lặp cao vọt và hẹp ngang</span>.'
+          }
+        };
+        const c = configs[type];
+        loop.setAttribute('d', c.d);
+        loop.setAttribute('stroke', c.stroke);
+        loop.setAttribute('fill', c.fill);
+        title.setAttribute('fill', c.stroke);
+        title.textContent = c.title;
+        metrics.textContent = c.metrics;
+        analysis.innerHTML = c.html;
+      }
+    };
+
+    (function() {
+      const payloadEl = document.getElementById('trainerPayload');
+      if (!payloadEl) return;
+      const payload = JSON.parse(payloadEl.textContent || '{}');
+      const stages = payload.stages || [];
+      if (stages.length === 0) return;
+
+      let currentIdx = 0;
+      const solvedMap = {};
+
+      function getEl(id) { return document.getElementById(id); }
+
+      // Dropdown Logic
+      const dropdownBtn = getEl('stageDropdownBtn');
+      const dropdownMenu = getEl('stageDropdownMenu');
+      const dropdownArrow = getEl('dropdownArrow');
+
+      if (dropdownBtn && dropdownMenu) {
+        dropdownBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const isHidden = dropdownMenu.classList.contains('hidden');
+          dropdownMenu.classList.toggle('hidden');
+          if (dropdownArrow) dropdownArrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+        });
+        document.addEventListener('click', function() {
+          dropdownMenu.classList.add('hidden');
+          if (dropdownArrow) dropdownArrow.style.transform = 'rotate(0deg)';
+        });
+      }
+
+      document.querySelectorAll('.stage-menu-item').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          const idx = parseInt(btn.getAttribute('data-stage-idx') || '0', 10);
+          renderStage(idx);
+        });
+      });
+
+      document.querySelectorAll('.seg-step').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          const idx = parseInt(btn.getAttribute('data-seg-idx') || '0', 10);
+          renderStage(idx);
+        });
+      });
+
+      function updateScore() {
+        let correctCount = 0;
+        stages.forEach(function(s) {
+          const ans = solvedMap[s.id];
+          if (ans !== undefined && s.quiz.options[ans] && s.quiz.options[ans].isCorrect) {
+            correctCount++;
+          }
+        });
+        const badge = getEl('scoreBadge');
+        if (badge) badge.textContent = correctCount + '/' + stages.length;
+      }
+
+      function renderQuiz(stage) {
+        const qEl = getEl('quizQuestion');
+        const optsEl = getEl('quizOptions');
+        const expEl = getEl('quizExplanation');
+        const pillEl = getEl('quizStatusPill');
+        if (!qEl || !optsEl || !expEl || !pillEl) return;
+
+        qEl.textContent = stage.quiz.question;
+        const chosenIdx = solvedMap[stage.id];
+        expEl.classList.add('hidden');
+
+        if (chosenIdx === undefined) {
+          pillEl.textContent = 'Chọn 1 đáp án';
+          pillEl.className = 'text-[10px] font-mono text-[#9E9E9E]';
+        } else {
+          const isRight = stage.quiz.options[chosenIdx].isCorrect;
+          pillEl.textContent = isRight ? 'Đã thông suốt ✓' : 'Thử lại nhé';
+          pillEl.className = 'text-[10px] font-mono font-bold ' + (isRight ? 'text-[#22C55E]' : 'text-[#EF4444]');
+        }
+
+        optsEl.innerHTML = stage.quiz.options.map(function(opt, idx) {
+          let cls = 'chess-btn text-gray-200 hover:text-white';
+          if (chosenIdx === idx) {
+            cls = opt.isCorrect
+              ? 'border border-[#22C55E] bg-[#22C55E]/15 text-white'
+              : 'border border-[#EF4444] bg-[#EF4444]/15 text-white';
+          }
+          return '<button data-opt-idx="' + idx + '" class="quiz-opt-btn w-full text-left p-2.5 rounded-xl text-xs leading-relaxed transition cursor-pointer ' + cls + '">' + opt.label + '</button>';
+        }).join('');
+
+        optsEl.querySelectorAll('.quiz-opt-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            const idx = parseInt(btn.getAttribute('data-opt-idx') || '0', 10);
+            solvedMap[stage.id] = idx;
+            renderQuiz(stage);
+            updateScore();
+          });
+        });
+
+        if (chosenIdx !== undefined) {
+          const chosenOpt = stage.quiz.options[chosenIdx];
+          expEl.classList.remove('hidden');
+          expEl.className = 'rounded-xl p-3 text-xs leading-relaxed border ' + (
+            chosenOpt.isCorrect
+              ? 'bg-[#22C55E]/10 border-[#22C55E]/40 text-gray-200'
+              : 'bg-[#EF4444]/10 border-[#EF4444]/40 text-gray-200'
+          );
+          expEl.innerHTML = chosenOpt.explanation;
+        }
+      }
+
+      function renderStage(idx) {
+        currentIdx = idx;
+        const stage = stages[idx];
+        if (!stage) return;
+
+        if (getEl('stageNotation')) getEl('stageNotation').textContent = stage.notation;
+        const tagEl = getEl('stageTag');
+        if (tagEl) {
+          tagEl.textContent = stage.tag;
+          tagEl.className = 'text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border ' + (
+            stage.tag === 'Trap' ? 'bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/40' :
+            stage.tag === 'Cấp cứu' ? 'bg-[#F5B82E]/15 text-[#F5B82E] border-[#F5B82E]/40' :
+            'bg-[#22C55E]/15 text-[#22C55E] border-[#22C55E]/40'
+          );
+        }
+
+        if (getEl('centerStageContainer')) getEl('centerStageContainer').innerHTML = stage.centerStageHtml;
+        if (getEl('dropdownGroupTitle')) getEl('dropdownGroupTitle').textContent = stage.groupTitle;
+        if (getEl('dropdownActiveTitle')) getEl('dropdownActiveTitle').textContent = (idx + 1) + '. ' + stage.title;
+        if (getEl('stepCounter')) getEl('stepCounter').textContent = (idx + 1) + ' of ' + stages.length;
+        if (getEl('coachBubbleHtml')) getEl('coachBubbleHtml').innerHTML = stage.coachHtml;
+
+        // Cập nhật Segmented Bar
+        document.querySelectorAll('.seg-step').forEach(function(stepBtn, i) {
+          const line = stepBtn.querySelector('.seg-line');
+          const label = stepBtn.querySelector('.seg-label');
+          if (i === idx) {
+            if (line) { line.classList.remove('bg-[#2E2E2E]'); line.classList.add('bg-[#F5B82E]'); }
+            if (label) { label.classList.remove('text-[#737373]'); label.classList.add('text-[#F5B82E]', 'font-bold'); }
+          } else if (i < idx) {
+            if (line) { line.classList.remove('bg-[#2E2E2E]'); line.classList.add('bg-[#22C55E]'); }
+            if (label) { label.classList.remove('text-[#F5B82E]', 'font-bold'); label.classList.add('text-[#9E9E9E]'); }
+          } else {
+            if (line) { line.classList.remove('bg-[#F5B82E]', 'bg-[#22C55E]'); line.classList.add('bg-[#2E2E2E]'); }
+            if (label) { label.classList.remove('text-[#F5B82E]', 'font-bold', 'text-[#9E9E9E]'); label.classList.add('text-[#737373]'); }
+          }
+        });
+
+        // Cập nhật Dropdown Highlight
+        document.querySelectorAll('.stage-menu-item').forEach(function(item, i) {
+          if (i === idx) {
+            item.classList.add('bg-[#262626]', 'shadow-[inset_3px_0_#F5B82E]');
+          } else {
+            item.classList.remove('bg-[#262626]', 'shadow-[inset_3px_0_#F5B82E]');
+          }
+        });
+
+        const nextText = getEl('btnNextText');
+        if (nextText) nextText.textContent = (idx === stages.length - 1) ? 'Ôn lại từ đầu' : 'Tiếp theo';
+
+        renderQuiz(stage);
+      }
+
+      getEl('btnPrev')?.addEventListener('click', function() {
+        renderStage((currentIdx - 1 + stages.length) % stages.length);
+      });
+
+      getEl('btnNext')?.addEventListener('click', function() {
+        renderStage((currentIdx + 1) % stages.length);
+      });
+
+      getEl('btnSkip')?.addEventListener('click', function() {
+        renderStage((currentIdx + 1) % stages.length);
+      });
+
+      renderStage(0);
+    })();
+  </script>
+</Layout>

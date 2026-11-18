@@ -1,21 +1,130 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
-/* Nạp 2 font chữ editorial: Switzer & Khand */
-@import url('https://api.fontshare.com/v2/css?f[]=switzer@400,500,600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Khand:wght@700&display=swap');
+@import "tailwindcss" source(none);
+@source "..";
 
 @theme {
-  --font-khand: 'Khand', sans-serif;
-  --font-switzer: 'Switzer', sans-serif;
-  --color-violent-red: #FF0033;
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Chessigma Charcoal & Amber Palette */
+  --color-bg-deep: #121212;
+  --color-panel: #181818;
+  --color-panel-alt: #222222;
+  --color-panel-hover: #282828;
+  --color-line: #2E2E2E;
+  --color-line-light: #3D3D3D;
+  --color-muted: #9E9E9E;
+  --color-gold: #F5B82E;
+  --color-gold-dark: #B88214;
+  --color-cyan: #38BDF8;
+  --color-green: #22C55E;
+  --color-red: #EF4444;
+  --color-purple: #A855F7;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
-  font-family: var(--font-switzer);
-  background-color: #ffffff;
-  color: #111111;
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-deep);
+  color: #F3F4F6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, .font-heading {
-  font-family: var(--font-khand);
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
+/* Nút bấm nổi khối 3D kiểu Chessigma */
+.chess-btn {
+  background: linear-gradient(180deg, #262626 0%, #1F1F1F 100%);
+  border: 1px solid #303030;
+  border-bottom: 3px solid #111111;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: all 0.15s ease;
+}
+
+.chess-btn:hover {
+  background: linear-gradient(180deg, #2D2D2D 0%, #242424 100%);
+  border-color: #404040;
+}
+
+.chess-btn-active {
+  background: linear-gradient(180deg, #28241B 0%, #1F1D18 100%);
+  border: 1.5px solid #F5B82E !important;
+  border-bottom: 3px solid #B88214 !important;
+  box-shadow: 0 0 14px rgba(245, 184, 46, 0.14), inset 0 1px 0 rgba(245, 184, 46, 0.2);
+}
+
+/* Nút CTA Vàng 3D đáy dày */
+.chess-cta-gold {
+  background: #F5B82E;
+  color: #121212;
+  border-bottom: 4px solid #B88214;
+  transition: transform 0.1s ease, filter 0.15s ease;
+}
+
+.chess-cta-gold:hover {
+  filter: brightness(1.06);
+}
+
+.chess-cta-gold:active {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+}
+
+/* Hộp icon 3D bo góc nổi */
+.clay-icon-box {
+  border-radius: 10px;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.45),
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.35),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #181818;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #303030;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #454545;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.35)); }
+  50% { filter: drop-shadow(0 0 16px rgba(245, 184, 46, 0.55)); }
+}
+.animate-loop {
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+
+/* Coach White Bubble Highlights */
+.hl-green {
+  color: #15803d;
+  font-weight: 700;
+  background: rgba(34, 197, 94, 0.16);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.hl-red {
+  color: #b91c1c;
+  font-weight: 700;
+  background: rgba(239, 68, 68, 0.16);
+  padding: 1px 5px;
+  border-radius: 4px;
 }
